@@ -15,6 +15,7 @@ function App() {
   const [alertProps, setAlertProps] = useState({ show: false, severity: '', message: '' });
   const [currentTurn, setCurrentTurn] = useState('');
   const [currentPawn, setCurrentPawn] = useState('');
+  const [currentIndex,setCurrentIndex] = useState({row:null,column:null})
   const [pawnList, SetPawnList] = useState([]);
 
 
@@ -53,6 +54,11 @@ function App() {
       setP2Selects(data.B);
     })
 
+    newSocket.on("clientMoveUpdate",(data)=>{
+      setCurrentTurn(data.currentPlayer);
+      setBoad(data.board);
+    })
+
     return () => {
       newSocket.close();
     };
@@ -84,20 +90,35 @@ function App() {
   }
 
   const removeSelectP1 = (indexRemove) => {
-    setP1Selects((prevSelects) =>
-      prevSelects.filter((_, index) => index !== indexRemove)
-    );
+    setP1Selects((prevSelects) => {
+      const updatedSelects = prevSelects.filter((_, index) => index !== indexRemove);
+      
+      if (socket) {
+        const data = { p1: updatedSelects, player: 'A' };
+        socket.emit("characterRemove", data);
+      }
+      
+      return updatedSelects;
+    });
   };
 
   const removeSelectP2 = (indexRemove) => {
-    setP2Selects((prevSelects) =>
-      prevSelects.filter((_, index) => index !== indexRemove)
-    );
+    setP2Selects((prevSelects) => {
+      const updatedSelects = prevSelects.filter((_, index) => index !== indexRemove);
+      
+      if (socket) {
+        const data = { p2: updatedSelects, player: 'B' };
+        socket.emit("characterRemove", data);
+      }
+      
+      return updatedSelects;
+    });
   };
 
-  const pickHandler = (cell, reowIndex, clomunIndex) => {
-    console.log(cell, reowIndex, clomunIndex);
+  const pickHandler = (cell, rowIndex, columnIndex) => {
+    console.log(cell, rowIndex, columnIndex);
     setCurrentPawn(cell);
+    setCurrentIndex({row:rowIndex, column:columnIndex})
     if (cell !== null && cell[2] === 'P') {
       SetPawnList(['L', 'R', 'F', 'B']);
     } else if (cell[2] === 'H' && cell[3] === '1') {
@@ -105,6 +126,13 @@ function App() {
     }
     else if (cell[2] === 'H' && cell[3] === '2') {
       SetPawnList(['FL', 'FR', 'BL', 'BR']);
+    }
+  }
+
+  const updateMove = (ele)=>{
+    let data = {ele,currentIndex,currentPawn};
+    if(socket){
+      socket.emit("updateMove",data);
     }
   }
 
@@ -127,7 +155,7 @@ function App() {
 
   if (ready === false) {
     return (
-      <div className='container' style={{ marginTop: "150px",width:"600px"}}>
+      <div className='container' style={{ marginTop: "150px", width: "600px" }}>
         {alertProps.show && (
           <Alert
             variant='filled'
@@ -159,7 +187,7 @@ function App() {
           </div>
           <div className={(p1Selects.length !== 0) ? 'selected' : "empty"}>
             <div className='selectHeading'>Selected:</div>
-            <div className="button-group" style={{ marginLeft:"-40px" ,display: 'flex', flexWrap: 'nowrap', gap: '5px' }}>
+            <div className="button-group" style={{ marginLeft: "-40px", display: 'flex', flexWrap: 'nowrap', gap: '5px' }}>
               {p1Selects.length !== 0 ? (
                 p1Selects.map((ele, index) => (
                   <Button
@@ -175,7 +203,7 @@ function App() {
                   </Button>
                 ))
               ) : (
-                <div style={{ fontSize: "30px" }}>Select Five</div>
+                <div style={{marginLeft:"40px", fontSize: "30px" }}>Select Five</div>
               )}
             </div>
           </div>
@@ -205,7 +233,7 @@ function App() {
           </div>
           <div className={(p2Selects.length !== 0) ? 'selected' : "empty"}>
             <div className='selectHeading'>Selected:</div>
-            <div className="button-group" style={{ marginLeft:"-40px", display: 'flex', flexWrap: 'nowrap', gap: '5px' }}>
+            <div className="button-group" style={{ marginLeft: "-40px", display: 'flex', flexWrap: 'nowrap', gap: '5px' }}>
               {p2Selects.length !== 0 ? (
                 p2Selects.map((ele, index) => (
                   <Button
@@ -221,7 +249,7 @@ function App() {
                   </Button>
                 ))
               ) : (
-                <div style={{ fontSize: "30px" }}>Select Five</div>
+                <div style={{marginLeft:"40px",  fontSize: "30px" }}>Select Five</div>
               )}
             </div>
           </div>
@@ -279,11 +307,18 @@ function App() {
           </div>
           <div style={{ fontSize: "30px", marginTop: "30px" }}>Selected: {currentPawn}</div>
         </div>
-        <div>{(pawnList.length !== 0) ?
-          pawnList.map((ele, index) => (
-            <Button variant='contained' size='small'>{ele}</Button>
-          )) : ''
-        }</div>
+        <div className="button-group"
+          style={{ marginTop: "10px", display: 'flex', flexWrap: 'nowrap', gap: '5px', justifyContent: "center" }}>
+          {(pawnList.length !== 0) ?
+            pawnList.map((ele, index) => (
+              <Button variant='contained'
+                key={index}
+                size="large"
+                style={{ minWidth: '80px', padding: '10px 10px' }}
+                onClick={()=>updateMove(ele)}                
+                >{ele}</Button>
+            )) : ''
+          }</div>
       </div>
     );
   }
