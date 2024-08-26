@@ -14,6 +14,7 @@ const gameState = {
         A: { characters: [], remaining: 5, started: false },
         B: { characters: [], remaining: 5, started: false }
     },
+    currentPlayer:'',
     started: false
 };
 
@@ -38,9 +39,11 @@ const gameInitilize = (data) => {
         let abbreviation = charactersName[ele];
         return `B-${abbreviation ? abbreviation : ele}`;
     });
+    gameState.currentPlayer = 'A'
     gameState.board[0] = gameState.players.A.characters;
     gameState.board[4] = gameState.players.B.characters;
     console.log("Game Started");
+
 }
 
 const playerCharacterUpdate = (data) => {

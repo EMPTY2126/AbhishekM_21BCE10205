@@ -1,14 +1,13 @@
 .container {
   color: white;
   text-align: center;
-  width: 500px;
+  width: 400px;
   margin-left: auto;
   margin-right: auto;
-  margin-top: 100px;
 }
 
 .gameContainer {
-  margin-top: 50px;
+  margin-top: 20px;
 }
 
 .selectHeading {
@@ -22,6 +21,7 @@
   grid-template-columns: repeat(4, 1fr);
   justify-items: center;
   align-items: center;
+  gap: 20px;
 }
 
 .selected {
@@ -29,7 +29,7 @@
   display: grid;
   width: 100%;
   grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
+  gap: 50px;
 }
 
 .empty {
@@ -44,6 +44,10 @@
   font-size: 50px;
 }
 
+.gridSelect{
+  
+}
+
 .gameGrid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -51,8 +55,8 @@
     gap: 5px;
     width: 50vw;
     height: 50vw;
-    max-width: 500px;
-    max-height: 500px;
+    max-width: 400px;
+    max-height: 400px;
     background-color: black; 
   }
 
@@ -79,10 +83,18 @@
     color: blue; 
   }
 
-  .gridItem.A.selected {
-    background-color: #4caf50; 
+  .gridItem.A.selectedd {
+    background-color: rgba(76, 175, 80, 0.2);
   }
   
-  .gridItem.B.selected {
-    background-color: #2196F3;
+  .gridItem.B.selectedd {
+    background-color: rgba(33, 150, 243, 0.2);
+  }
+
+  .gridItem.A.selectedd:hover {
+    background-color: rgba(76, 175, 80, 0.5);
+  }
+  
+  .gridItem.B.selectedd:hover {
+    background-color: rgba(33, 150, 243, 0.5);
   }
