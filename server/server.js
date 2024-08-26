@@ -25,21 +25,20 @@ const characters = {
 
 
 const gameInitilize = (data)=>{
-    player = data.player;
-    pieces = data.pieces;
-    if(player === 'A')
-    {
-        pieces.reverse();
-        gameState.board[4] = pieces;
-        gameState.players.A.characters = pieces;
-    }
-    if(player === 'B')
-    {
-        gameState.board[0] = pieces;
-        gameState.players.B.characters = pieces;
-    }
+    const p1Piece = data.p1Selects;
+    let revPiece = p1Piece.reverse();
+    gameState.board[4] = revPiece;
+    gameState.players.A.characters = p1Piece;
+    gameState.board[0] = data.p2Selects;
+    gameState.players.B.characters = data.p2Selects;
     console.log(gameState.board)
 }
+
+const clientGameInitilize = (socket)=>{
+    let data = {board : gameState.board, ready:true}
+    socket.emit("initilize",data);
+}
+
 
 
 io.on("connection",(socket)=>{
@@ -47,6 +46,7 @@ io.on("connection",(socket)=>{
 
     socket.on("initilize",(data)=>{
         gameInitilize(data);
+        clientGameInitilize(socket);
     })
 
     socket.on("message",(msg)=>{
