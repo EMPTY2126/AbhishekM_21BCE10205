@@ -6,16 +6,20 @@ const PORT = 8000;
 
 const app = express();
 const server = createServer(app);
-const io = new Server(server,{cors: { origin: "*" }});    
+const io = new Server(server, { cors: { origin: "*" } });
 
 const gameState = {
     board: Array(5).fill(null).map(() => Array(5).fill(null)),
     players: {
         A: { characters: [], remaining: 5, started: false },
         B: { characters: [], remaining: 5, started: false }
-    }
+    },
+    started: false
 };
 
+const charactersName = {
+    PAWN: "P", HERO1: "H1", HERO2: "H2"
+}
 
 const characters = {
     P: { move: ['L', 'R', 'F', 'B'] },
@@ -24,44 +28,71 @@ const characters = {
 };
 
 
-const gameInitilize = (data)=>{
-    const p1Piece = data.p1Selects;
-    let revPiece = p1Piece.reverse();
-    gameState.board[4] = revPiece;
-    gameState.players.A.characters = p1Piece;
-    gameState.board[0] = data.p2Selects;
-    gameState.players.B.characters = data.p2Selects;
-    console.log(gameState.board)
+const gameInitilize = (data) => {
+    gameState.started = true;
+    gameState.players.A.characters = gameState.players.A.characters.map((ele) => {
+        let abbreviation = charactersName[ele];
+        return `A-${abbreviation ? abbreviation : ele}`;
+    });
+    gameState.players.B.characters = gameState.players.B.characters.map((ele) => {
+        let abbreviation = charactersName[ele];
+        return `B-${abbreviation ? abbreviation : ele}`;
+    });
+    gameState.board[0] = gameState.players.A.characters;
+    gameState.board[4] = gameState.players.B.characters;
+    console.log("Game Started");
 }
 
-const clientGameInitilize = (socket)=>{
-    let data = {board : gameState.board, ready:true}
-    socket.emit("initilize",data);
+const playerCharacterUpdate = (data) => {
+    let currPlayer = data.player;
+    let currPieces = data.charecters;
+    if (currPlayer === 'A') gameState.players.A.characters.push(currPieces);
+    else if (currPlayer === 'B') gameState.players.B.characters.push(currPieces);
 }
 
 
 
-io.on("connection",(socket)=>{
+io.on("connection", (socket) => {
     console.log(`user connected ID: ${socket.id}`);
 
-    socket.on("initilize",(data)=>{
+    socket.on("initilize", (data) => {
         gameInitilize(data);
-        clientGameInitilize(socket);
+        clientGameInitilize(io);
     })
 
-    socket.on("message",(msg)=>{
-        console.log(msg);  
+    socket.on("selectPlayer", (data) => {
+        playerCharacterUpdate(data);
+        clientCharacterUpdate(io);
     })
 
-    socket.on("disconnect",()=>{
-        console.log(`user disconnected ID: ${socket.id}`); 
-        socket.re 
+    socket.on("refreshGame", (msg) => {
+        refreshUpdate(socket);
+    });
+
+    socket.on("disconnect", () => {
+        console.log(`user disconnected ID: ${socket.id}`);
     })
 })
 
+const clientCharacterUpdate = (io) => {
+    let data = { A: gameState.players.A.characters, B: gameState.players.B.characters };
+    io.emit("characterUpdate", data);
+}
+
+const clientGameInitilize = (io) => {
+    io.emit("initilize", gameState);
+}
+
+const refreshUpdate = (socket) => {
+    socket.emit("refreshUpdate", gameState);
+}
 
 
 
-server.listen(PORT,()=>console.log(`Server running on port : ${PORT}`));
+
+
+
+
+server.listen(PORT, () => console.log(`Server running on port : ${PORT}`));
 
 

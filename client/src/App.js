@@ -7,7 +7,7 @@ import { Button, Divider, Alert } from '@mui/material';
 function App() {
 
   const [socket, setSocket] = useState(null);
-  const [board, setBoadr] = useState([]);
+  const [board, setBoad] = useState([]);
   const [ready, setReady] = useState(false);
   const charecters = ["Pawn", "Hero1", "Hero2"];
   const [p1Selects, setP1Selects] = useState([]);
@@ -22,10 +22,30 @@ function App() {
 
     setSocket(newSocket);
 
+
     newSocket.on("initilize", (data) => {
-      setBoadr(data.board);
-      setReady(data.ready);
+      setReady(data.started);
+      setBoad(data.board);  
     });
+
+    newSocket.emit("refreshGame", "Need game update");
+
+    newSocket.on("refreshUpdate", (data) => {
+      if (data.started) {
+        setReady(true);
+        setBoad(data.board);
+        setP1Selects(data.players.A.characters);
+        setP2Selects(data.players.B.characters);
+      } else {
+        setP1Selects(data.players.A.characters);
+        setP2Selects(data.players.B.characters);
+      }
+    });
+
+    newSocket.on("characterUpdate", (data) => {
+      setP1Selects(data.A);
+      setP2Selects(data.B);
+    })
 
     return () => {
       newSocket.close();
@@ -35,24 +55,25 @@ function App() {
   const startGame = () => {
     if (socket) {
       let data = { p1Selects, p2Selects }
-      socket.emit("initilize", (data))
+      socket.emit("initilize", (data));
     }
   }
-
 
   const addSelectP1 = (e) => {
     if (p1Selects.length === 5) {
       alertPlayer({ state: 'info', message: 'P1: Maximum players selected' });
-    } else {
-      setP1Selects((p1Selects) => [...p1Selects, e.target.innerText])
+    } else if (socket) {
+      let data = { player: 'A', charecters: e.target.innerText };
+      socket.emit("selectPlayer", data);
     }
   }
 
   const addSelectP2 = (e) => {
     if (p2Selects.length === 5) {
       alertPlayer({ state: 'info', message: 'P2: Maximum players selected' });
-    } else {
-      setP2Selects((p2Selects) => [...p2Selects, e.target.innerText])
+    } else if (socket) {
+      let data = { player: 'B', charecters: e.target.innerText };
+      socket.emit("selectPlayer", data);
     }
   }
 
@@ -153,24 +174,23 @@ function App() {
       <div className='container'>
         {alertProps.show && (
           <Alert
-            variant='filled'
-            severity={alertProps.severity}
-
+            variant='filled' severity={alertProps.severity}
             onClose={() => setAlertProps({ ...alertProps, show: false })}
           >{alertProps.message}</Alert>
         )}
-         <div className='player2' >Player 2</div>
-        <div className='gameGrid'>
-          {board.map((row, rowIndex) => (
-            row.map((cell, cellIndex) => (
-              <div key={`${rowIndex}-${cellIndex}`} className="gridItem">
-                {cell !== null && cell} 
-              </div>
-            ))
-          ))}
+        <div className='gameContainer'>
+          <div className='gameGrid'>
+            {board.map((row, rowIndex) => (
+              row.map((cell, cellIndex) => (
+                <div key={`${rowIndex}-${cellIndex}`}
+                  className={`gridItem ${cell && cell[0] === 'A' ? 'A' : cell && cell[0] === 'B' ? 'B' : ''}`}
+                  onClick={(e)=>console.log(e)}>
+                  {cell !== null && cell}
+                </div>
+              ))
+            ))}
+          </div>
         </div>
-        <div className='player1' 
-        style={{width:'100%',border:'solid',borderColor:'white'}}>Player 1</div>
       </div>
     );
   }
