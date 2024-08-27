@@ -27,6 +27,7 @@ This project is a server-side implementation of a multiplayer turn-based game bu
 ```
 2. install dependency 
 ```bash
+    cd server
     npm install
 ``` 
  3. Start the server:
@@ -66,3 +67,97 @@ This project is a server-side implementation of a multiplayer turn-based game bu
     - **gameWon:** Announces the winner when the game ends.
     - **invalidWarning:** Sends a warning if a player makes an invalid move.
 
+
+
+# Chess-like Turn-based Client SetUp
+## Overview
+
+This is a turn-based strategy game inspired by chess, where two players, Player A and Player B, select characters and engage in a strategic battle on a 5x5 grid board. The game allows real-time multiplayer interaction using Socket.io. Each player must select their characters before starting the game, and they take turns to move their selected characters on the board according to predefined move patterns. The game keeps track of each player's moves and declares a winner when a player meets the winning condition.
+Features
+
+-**Real-Time Multiplayer:** Players can join the game and interact in real-time.
+    -**Character Selection:** Both players must select 5 characters each before starting the game.
+    -**Turn-Based Gameplay:** Players take turns to move their characters on the board.
+    -**Move Validation:** The game ensures that only valid moves are executed.
+    -**Move History:** Displays the history of moves for each player.
+    -**Game Restart & Quit:** Players can restart or quit the game anytime.
+
+## Technologies Used
+
+-**React.js:** For building the user interface.
+    -**Socket.io:** For real-time communication between the server and clients.
+    -**Node.js:** Backend server to handle game logic and socket connections.
+    -**Material-UI:** For styled components and UI elements.
+
+## Setup Instructions
+### Prerequisites
+
+   - **Node.js** (v14+ recommended)
+    - **npm** (v6+ recommended)
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/your-username/your-repo-name.git
+cd your-repo-name
+```
+
+2. Install dependencies:
+
+```bash
+cd client
+npm install
+```
+3. Start the server:
+```bash
+npm start
+```
+4. Open a web browser and go to http://localhost:3000.
+
+## How to Play
+
+-**Character Selection:-**
+        Player 1 and Player 2 select their characters by clicking on the character buttons.
+        Each player must select exactly 5 characters to proceed.
+
+-**Start the Game:**
+        Once both players have selected their characters, click the "Start" button to begin the game.
+
+-**Taking Turns:**
+        Players take turns moving their characters on the board.
+        Click on a character to select it, and then choose the direction of the move from the available options.
+        The game will automatically update the board and switch turns.
+
+-**Winning the Game:**
+        The game continues until a player meets the winning condition (e.g., capturing a key piece).
+
+-**Restart or Quit:**
+        Players can restart the game or quit at any time using the provided buttons.
+
+### Game Logic
+
+ -**Characters:**
+        -***Pawn (P):*** Can move in four directions (Left, Right, Forward, Backward).
+        -***Hero1 (H1):*** Can move in the same directions as Pawn.
+        -***Hero2 (H2):*** Can move diagonally (Forward Left, Forward Right, Backward Left, Backward Right).
+
+-**Move Validation:**
+        The game only allows valid moves based on the character's movement rules.
+        The move history is updated after each valid move.
+
+-**Move History:**
+        The move history for each player is displayed on the game interface, showing the sequence of moves made during the game.
+
+### Screenshots
+
+## Future Enhancements
+    Add more characters with unique movement patterns.
+    Implement a ranking system for players.
+    Enhance the UI with more interactive and animated elements.
+
+## Contributing
+Contributions are welcome! Please fork the repository and create a pull request for any improvements or bug fixes.
+License
+
+If you have any questions or feedback, feel free to contact me at abhishek.abhi172126@gmail.com.
