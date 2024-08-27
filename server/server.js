@@ -61,141 +61,6 @@ const removePlayer = (data) => {
     }
 }
 
-
-// const movePawn = (data) => {
-//     const boardSize = 5;
-//     const { ele, currentIndex, currentPawn } = data;
-//     let { row, column } = currentIndex;
-//     const player = currentPawn.split('-')[0];
-//     const pieceType = currentPawn.split('-')[1];
-
-//     const isWithinBounds = (r, c) => {
-//         return r >= 0 && r < boardSize && c >= 0 && c < boardSize;
-//     };
-
-//     const isOpponentPiece = (r, c) => {
-//         if (!isWithinBounds(r, c)) return false;
-//         const targetCell = gameState.board[r][c];
-//         return targetCell && targetCell.split('-')[0] !== player;
-//     };
-
-//     const isOwnPiece = (r, c) => {
-//         if (!isWithinBounds(r, c)) return false;
-//         const targetCell = gameState.board[r][c];
-//         return targetCell && targetCell.split('-')[0] === player;
-//     };
-
-//     const moveAndCapture = (targetRow, targetColumn) => {
-//         if (!isWithinBounds(targetRow, targetColumn)) {
-//             return { status: "Invalid", reason: "Out of bounds." };
-//         }
-
-//         if (isOwnPiece(targetRow, targetColumn)) {
-//             return { status: "Invalid", reason: "Own piece in target cell." };
-//         }
-
-//         let capturedPiece = null;
-//         if (isOpponentPiece(targetRow, targetColumn)) {
-//             capturedPiece = gameState.board[targetRow][targetColumn];
-//         }
-
-//         gameState.board[row][column] = null;
-//         gameState.board[targetRow][targetColumn] = currentPawn;
-
-//         if (capturedPiece) {
-//             gameState.players[player === 'A' ? 'B' : 'A'].remaining -= 1;
-//         }
-
-//         const opponentPlayer = player === 'A' ? 'B' : 'A';
-//         const opponentRemaining = gameState.players[opponentPlayer].remaining;
-//         const isWin = opponentRemaining === 0;
-
-//         gameState.currentPlayer = opponentPlayer;
-
-//         return {
-//             status: "Valid",
-//             newPosition: { row: targetRow, column: targetColumn },
-//             currentPiece: currentPawn,
-//             capturedPiece: capturedPiece,
-//             move:ele,
-//             isWin: isWin,
-//             winner: isWin ? player : null
-//         };
-//     };
-
-//     let targetRow = row;
-//     let targetColumn = column;
-
-//     switch (pieceType) {
-//         case 'P':
-//             switch (ele) {
-//                 case 'F':
-//                     targetRow -= 1;
-//                     break;
-//                 case 'B':
-//                     targetRow += 1;
-//                     break;
-//                 case 'L':
-//                     targetColumn -= 1;
-//                     break;
-//                 case 'R':
-//                     targetColumn += 1;
-//                     break;
-//                 default:
-//                     return { status: "Invalid", reason: "Unknown command." };
-//             }
-//             return moveAndCapture(targetRow, targetColumn);
-
-//         case 'H1':
-//             switch (ele) {
-//                 case 'F':
-//                     targetRow -= 2;
-//                     break;
-//                 case 'B':
-//                     targetRow += 2;
-//                     break;
-//                 case 'L':
-//                     targetColumn -= 2;
-//                     break;
-//                 case 'R':
-//                     targetColumn += 2;
-//                     break;
-//                 default:
-//                     return { status: "Invalid", reason: "Unknown command." };
-//             }
-
-//             const midRow = (row + targetRow) / 2;
-//             const midCol = (column + targetColumn) / 2;
-//             let capturedPieceH1 = null;
-//             if (isOpponentPiece(midRow, midCol)) {
-//                 capturedPieceH1 = gameState.board[midRow][midCol];
-//             }
-//             return moveAndCapture(targetRow, targetColumn);
-
-//         case 'H2':
-//             switch (ele) {
-//                 case 'FL':
-//                     targetRow -= 2; targetColumn -= 2;
-//                     break;
-//                 case 'FR':
-//                     targetRow -= 2; targetColumn += 2;
-//                     break;
-//                 case 'BL':
-//                     targetRow += 2; targetColumn -= 2;
-//                     break;
-//                 case 'BR':
-//                     targetRow += 2; targetColumn += 2;
-//                     break;
-//                 default:
-//                     return { status: "Invalid", reason: "Unknown command." };
-//             }
-//             return moveAndCapture(targetRow, targetColumn);
-
-//         default:
-//             return { status: "Invalid", reason: "Unknown piece type." };
-//     }
-// };
-
 const movePawn = (data) => {
     const boardSize = 5;
     const { ele, currentIndex, currentPawn } = data;
@@ -203,21 +68,23 @@ const movePawn = (data) => {
     const player = currentPawn.split('-')[0];
     const pieceType = currentPawn.split('-')[1];
 
-    const isWithinBounds = (r, c) => r >= 0 && r < boardSize && c >= 0 && c < boardSize;
+    const isWithinBounds = (r, c) => {
+        return r >= 0 && r < boardSize && c >= 0 && c < boardSize;
+    };
 
     const isOpponentPiece = (r, c) => {
-        if (!isWithinBounds(r, c)) return false;
+        if (!isWithinBounds(r, c)) return false;  // Boundary check
         const targetCell = gameState.board[r][c];
         return targetCell && targetCell.split('-')[0] !== player;
     };
 
     const isOwnPiece = (r, c) => {
-        if (!isWithinBounds(r, c)) return false;
+        if (!isWithinBounds(r, c)) return false;  // Boundary check
         const targetCell = gameState.board[r][c];
         return targetCell && targetCell.split('-')[0] === player;
     };
 
-    const moveAndCapture = (targetRow, targetColumn, capturedPiece) => {
+    const moveAndCapture = (targetRow, targetColumn) => {
         if (!isWithinBounds(targetRow, targetColumn)) {
             return { status: "Invalid", reason: "Out of bounds." };
         }
@@ -226,6 +93,15 @@ const movePawn = (data) => {
             return { status: "Invalid", reason: "Own piece in target cell." };
         }
 
+        let capturedPiece = null;
+        let moveDescription = `${player}-${pieceType}`;
+
+        if (isOpponentPiece(targetRow, targetColumn)) {
+            capturedPiece = gameState.board[targetRow][targetColumn];
+            moveDescription += ` (capture ${capturedPiece})`;
+        }
+
+        // Perform the move only if valid
         gameState.board[row][column] = null;
         gameState.board[targetRow][targetColumn] = currentPawn;
 
@@ -233,10 +109,14 @@ const movePawn = (data) => {
             gameState.players[player === 'A' ? 'B' : 'A'].remaining -= 1;
         }
 
+        // Add the move to the moveList of the current player
+        gameState.players[player].moveList.push(moveDescription);
+
         const opponentPlayer = player === 'A' ? 'B' : 'A';
         const opponentRemaining = gameState.players[opponentPlayer].remaining;
         const isWin = opponentRemaining === 0;
 
+        // Switch the current player if the move was valid
         gameState.currentPlayer = opponentPlayer;
 
         return {
@@ -244,28 +124,10 @@ const movePawn = (data) => {
             newPosition: { row: targetRow, column: targetColumn },
             currentPiece: currentPawn,
             capturedPiece: capturedPiece,
-            move: ele,
+            move:ele,
             isWin: isWin,
             winner: isWin ? player : null
         };
-    };
-
-    const checkPathForCapture = (startRow, startCol, endRow, endCol, stepRow, stepCol) => {
-        let capturedPiece = null;
-        let pieceCount = 0;
-
-        for (let r = startRow + stepRow, c = startCol + stepCol; r !== endRow || c !== endCol; r += stepRow, c += stepCol) {
-            if (isOpponentPiece(r, c)) {
-                pieceCount++;
-                if (pieceCount > 1) {
-                    return { status: "Invalid", reason: "Only one pawn can be captured in a single move." };
-                }
-                capturedPiece = gameState.board[r][c];
-            } else if (isOwnPiece(r, c)) {
-                return { status: "Invalid", reason: "Own piece in the path." };
-            }
-        }
-        return { status: "Valid", capturedPiece };
     };
 
     let targetRow = row;
@@ -289,7 +151,7 @@ const movePawn = (data) => {
                 default:
                     return { status: "Invalid", reason: "Unknown command." };
             }
-            return moveAndCapture(targetRow, targetColumn, null);
+            return moveAndCapture(targetRow, targetColumn);
 
         case 'H1':
             switch (ele) {
@@ -308,11 +170,14 @@ const movePawn = (data) => {
                 default:
                     return { status: "Invalid", reason: "Unknown command." };
             }
-            const checkResultH1 = checkPathForCapture(row, column, targetRow, targetColumn, (targetRow - row) / 2, (targetColumn - column) / 2);
-            if (checkResultH1.status === "Invalid") {
-                return checkResultH1;
+
+            const midRow = (row + targetRow) / 2;
+            const midCol = (column + targetColumn) / 2;
+            let capturedPieceH1 = null;
+            if (isOpponentPiece(midRow, midCol)) {
+                capturedPieceH1 = gameState.board[midRow][midCol];
             }
-            return moveAndCapture(targetRow, targetColumn, checkResultH1.capturedPiece);
+            return moveAndCapture(targetRow, targetColumn);
 
         case 'H2':
             switch (ele) {
@@ -331,16 +196,17 @@ const movePawn = (data) => {
                 default:
                     return { status: "Invalid", reason: "Unknown command." };
             }
-            const checkResultH2 = checkPathForCapture(row, column, targetRow, targetColumn, (targetRow - row) / 2, (targetColumn - column) / 2);
-            if (checkResultH2.status === "Invalid") {
-                return checkResultH2;
-            }
-            return moveAndCapture(targetRow, targetColumn, checkResultH2.capturedPiece);
+            return moveAndCapture(targetRow, targetColumn);
+
 
         default:
             return { status: "Invalid", reason: "Unknown piece type." };
     }
 };
+
+
+
+
 
 
 

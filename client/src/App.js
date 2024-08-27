@@ -154,7 +154,6 @@ function App() {
 
   const pickHandler = (cell, rowIndex, columnIndex) => {
     if (currentTurn === cell[0]) {
-      // console.log(cell, rowIndex, columnIndex);
       setCurrentPawn(cell);
       setCurrentIndex({ row: rowIndex, column: columnIndex })
       if (cell !== null && cell[2] === 'P') {
@@ -387,7 +386,7 @@ function App() {
               ))}
             </ul>
           </div>
-          <div className="HistoryPlayerB" style={{ flex: 1, textAlign: "left" }}>
+          <div className="HistoryPlayerB" style={{ flex: 1,marginRight:"-100px", textAlign: "left" }}>
             <div style={{ fontWeight: "bold", marginBottom: "10px" }}>Player B</div>
             <ul style={{ listStyleType: "none", padding: 0 }}>
               {p2History.map((ele, index) => (
