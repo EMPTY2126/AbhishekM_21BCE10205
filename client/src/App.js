@@ -15,8 +15,11 @@ function App() {
   const [alertProps, setAlertProps] = useState({ show: false, severity: '', message: '' });
   const [currentTurn, setCurrentTurn] = useState('');
   const [currentPawn, setCurrentPawn] = useState('');
-  const [currentIndex,setCurrentIndex] = useState({row:null,column:null})
+  const [currentIndex, setCurrentIndex] = useState({ row: null, column: null })
   const [pawnList, SetPawnList] = useState([]);
+  const [p1History, setP1History] = useState([]);
+  const [p2History, setP2History] = useState([]);
+
 
 
 
@@ -36,6 +39,38 @@ function App() {
 
     newSocket.emit("refreshGame", "Need game update");
 
+    newSocket.on("gameWon", (data) => {
+      setAlertProps({
+        show: true,
+        severity: "success",
+        message: `Player ${data.winner} Won The Game`,
+      });
+    })
+
+    newSocket.on("restartGame", (data) => {
+      setReady(data.started);
+      setBoad(data.board);
+      setCurrentTurn(data.currentPlayer);
+      setP1Selects(data.players.A.characters);
+      setP2Selects(data.players.B.characters);
+    });
+
+    newSocket.on("invalidWarning", data => {
+
+      setAlertProps({
+        show: true,
+        severity: "warning",
+        message: data.reason,
+      });
+
+      setTimeout(() => {
+        setAlertProps((prevProps) => ({
+          ...prevProps,
+          show: false,
+        }));
+      }, 5000);
+    })
+
     newSocket.on("refreshUpdate", (data) => {
       if (data.started) {
         setReady(true);
@@ -54,9 +89,11 @@ function App() {
       setP2Selects(data.B);
     })
 
-    newSocket.on("clientMoveUpdate",(data)=>{
+    newSocket.on("clientMoveUpdate", (data) => {
       setCurrentTurn(data.currentPlayer);
       setBoad(data.board);
+      setP1History(data.players.A.moveList);
+      setP2History(data.players.B.moveList);
     })
 
     return () => {
@@ -92,12 +129,12 @@ function App() {
   const removeSelectP1 = (indexRemove) => {
     setP1Selects((prevSelects) => {
       const updatedSelects = prevSelects.filter((_, index) => index !== indexRemove);
-      
+
       if (socket) {
         const data = { p1: updatedSelects, player: 'A' };
         socket.emit("characterRemove", data);
       }
-      
+
       return updatedSelects;
     });
   };
@@ -105,35 +142,38 @@ function App() {
   const removeSelectP2 = (indexRemove) => {
     setP2Selects((prevSelects) => {
       const updatedSelects = prevSelects.filter((_, index) => index !== indexRemove);
-      
+
       if (socket) {
         const data = { p2: updatedSelects, player: 'B' };
         socket.emit("characterRemove", data);
       }
-      
+
       return updatedSelects;
     });
   };
 
   const pickHandler = (cell, rowIndex, columnIndex) => {
-    console.log(cell, rowIndex, columnIndex);
-    setCurrentPawn(cell);
-    setCurrentIndex({row:rowIndex, column:columnIndex})
-    if (cell !== null && cell[2] === 'P') {
-      SetPawnList(['L', 'R', 'F', 'B']);
-    } else if (cell[2] === 'H' && cell[3] === '1') {
-      SetPawnList(['L', 'R', 'F', 'B']);
-    }
-    else if (cell[2] === 'H' && cell[3] === '2') {
-      SetPawnList(['FL', 'FR', 'BL', 'BR']);
+    if (currentTurn === cell[0]) {
+      // console.log(cell, rowIndex, columnIndex);
+      setCurrentPawn(cell);
+      setCurrentIndex({ row: rowIndex, column: columnIndex })
+      if (cell !== null && cell[2] === 'P') {
+        SetPawnList(['L', 'R', 'F', 'B']);
+      } else if (cell[2] === 'H' && cell[3] === '1') {
+        SetPawnList(['L', 'R', 'F', 'B']);
+      }
+      else if (cell[2] === 'H' && (cell[3] === '2')) {
+        SetPawnList(['FL', 'FR', 'BL', 'BR']);
+      }
     }
   }
 
-  const updateMove = (ele)=>{
-    let data = {ele,currentIndex,currentPawn};
-    if(socket){
-      socket.emit("updateMove",data);
+  const updateMove = (ele) => {
+    let data = { ele, currentIndex, currentPawn };
+    if (socket) {
+      socket.emit("updateMove", data);
     }
+    SetPawnList([]);
   }
 
 
@@ -152,6 +192,12 @@ function App() {
     }, 5000);
 
   };
+
+  const restartGame = () => {
+    if (socket) {
+      socket.emit("reInitilize", "Restart Game")
+    }
+  }
 
   if (ready === false) {
     return (
@@ -203,7 +249,7 @@ function App() {
                   </Button>
                 ))
               ) : (
-                <div style={{marginLeft:"40px", fontSize: "30px" }}>Select Five</div>
+                <div style={{ marginLeft: "40px", fontSize: "30px" }}>Select Five</div>
               )}
             </div>
           </div>
@@ -249,7 +295,7 @@ function App() {
                   </Button>
                 ))
               ) : (
-                <div style={{marginLeft:"40px",  fontSize: "30px" }}>Select Five</div>
+                <div style={{ marginLeft: "40px", fontSize: "30px" }}>Select Five</div>
               )}
             </div>
           </div>
@@ -299,7 +345,7 @@ function App() {
                   className={`gridItem 
                         ${cell && cell[0] === 'A' ? ' A' : cell && cell[0] === 'B' ? ' B' : ''}
                         ${cell && cell[0] === currentTurn ? ' selectedd' : ''}`}
-                  onClick={() => pickHandler(cell, rowIndex, cellIndex)}>
+                  onClick={() => { (cell !== null) && pickHandler(cell, rowIndex, cellIndex) }}>
                   {cell !== null && cell}
                 </div>
               ))
@@ -315,10 +361,41 @@ function App() {
                 key={index}
                 size="large"
                 style={{ minWidth: '80px', padding: '10px 10px' }}
-                onClick={()=>updateMove(ele)}                
-                >{ele}</Button>
+                onClick={() => updateMove(ele)}
+              >{ele}</Button>
             )) : ''
           }</div>
+        <Divider sx={{ mt: 3, mb: 3 }} style={{ backgroundColor: "blue" }} />
+        <div style={{ display: "inline-flex", gap: "20px" }}>
+          <Button onClick={() => restartGame()} size='large' style={{ border: 'solid' }} varient='contained' color='error' >Quit Game </Button>
+          <Button onClick={() => restartGame()} size='large' style={{ border: 'solid' }} varient='contained' color='primary' >Restart Game </Button>
+        </div>
+        <Divider sx={{ mt: 3, mb: 3 }} style={{ backgroundColor: "blue" }} />
+        <div style={{ fontSize: "20px" }}>Move History</div>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          fontSize: "20px",
+          padding: "10px",
+        }} className='history'>
+          <div className="HistoryPlayerA" style={{ flex: 1, textAlign: "left" }}>
+            <div style={{ fontWeight: "bold", marginBottom: "10px" }}>Player A</div>
+            <ul style={{ listStyleType: "none", padding: 0 }}>
+              {p1History.map((ele, index) => (
+                <li key={index}>{ele}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="HistoryPlayerB" style={{ flex: 1, textAlign: "left" }}>
+            <div style={{ fontWeight: "bold", marginBottom: "10px" }}>Player B</div>
+            <ul style={{ listStyleType: "none", padding: 0 }}>
+              {p2History.map((ele, index) => (
+                <li key={index}>{ele}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </div>
     );
   }
