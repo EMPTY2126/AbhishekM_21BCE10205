@@ -150,6 +150,12 @@ npm start
         The move history for each player is displayed on the game interface, showing the sequence of moves made during the game.
 
 ### Screenshots
+![Game start page](./client/public/image.png)
+![After Pawns Selection](./client/public/image-1.png)
+![Initial main game start](./client/public/image-2.png)
+![While playing](./client/public/image-3.png)
+![Game Won](./client/public/image-4.png)
+
 
 ## Future Enhancements
     Add more characters with unique movement patterns.
